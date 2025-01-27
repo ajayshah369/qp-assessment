@@ -6,12 +6,14 @@ import {
   UseGuards,
   Get,
   Request,
+  Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersService } from './users.service';
 import { UserJwtAuthGuard } from '../user-jwt/jwt-auth.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserLoginDto } from './dto/user-login-dto';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -21,12 +23,18 @@ export class AuthController {
   ) {}
 
   @Post('login')
-  async login(@Body() body: UserLoginDto) {
+  async login(@Body() body: UserLoginDto, @Res() res: Response) {
     const user = await this.authService.validateUser(body.email, body.password);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    return this.authService.login(user);
+    const data = await this.authService.login(user);
+
+    res.cookie('access_token', data.access_token, {
+      httpOnly: true,
+    });
+
+    res.json(data);
   }
 
   @UseGuards(UserJwtAuthGuard)
@@ -39,7 +47,13 @@ export class AuthController {
   }
 
   @Post('signup')
-  async signup(@Body() body: CreateUserDto) {
-    return this.authService.signup(body);
+  async signup(@Body() body: CreateUserDto, @Res() res: Response) {
+    const data = await this.authService.signup(body);
+
+    res.cookie('access_token', data.access_token, {
+      httpOnly: true,
+    });
+
+    res.json(data);
   }
 }

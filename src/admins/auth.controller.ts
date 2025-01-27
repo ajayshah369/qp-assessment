@@ -5,12 +5,14 @@ import {
   UnauthorizedException,
   UseGuards,
   Get,
+  Res,
   Request,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AdminsService } from './admins.service';
 import { AdminJwtAuthGuard } from '../admin-jwt/jwt-auth.guard';
 import { AdminLoginDto } from './dto/admin-login-dto';
+import { Response } from 'express';
 
 @Controller('admin/auth')
 export class AuthController {
@@ -20,7 +22,7 @@ export class AuthController {
   ) {}
 
   @Post('login')
-  async login(@Body() body: AdminLoginDto) {
+  async login(@Body() body: AdminLoginDto, @Res() res: Response) {
     const admin = await this.authService.validateUser(
       body.username,
       body.password,
@@ -28,7 +30,13 @@ export class AuthController {
     if (!admin) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    return this.authService.login(admin);
+    const data = await this.authService.login(admin);
+
+    res.cookie('access_token', data.access_token, {
+      httpOnly: true,
+    });
+
+    res.json(data);
   }
 
   @UseGuards(AdminJwtAuthGuard)
