@@ -35,9 +35,13 @@ export class AdminsService implements OnModuleInit {
 
     if (!existingAdmin) {
       await this.create(superAdmin);
-      Logger.verbose('Super admin created successfully');
+      Logger.verbose('Super admin created successfully with');
+      Logger.verbose('Username: super-admin');
+      Logger.verbose('Password: password');
     } else {
       Logger.verbose('Super admin already exists');
+      Logger.verbose('Username: super-admin');
+      Logger.verbose('Password: password');
     }
   }
 
